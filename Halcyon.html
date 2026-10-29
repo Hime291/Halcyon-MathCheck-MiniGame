@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WWM Halcyon Raid - Math Trainer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Noto+Serif+TC:wght@600;900&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0f14;
+      --bg-card: #141b22;
+      --bg-card-border: #23303e;
+      --text-main: #e2e8f0;
+      --text-muted: #8493a8;
+      
+      --yin-color: #38bdf8;
+      --yin-glow: rgba(56, 189, 248, 0.3);
+      --yang-color: #f59e0b;
+      --yang-glow: rgba(245, 158, 11, 0.3);
+      
+      --accent-gold: #fbbf24;
+      --accent-red: #ef4444;
+      --accent-green: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08), transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(245, 158, 11, 0.08), transparent 50%);
+    }
+
+    /* --- HEADER & SETTINGS --- */
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #fef08a, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    /* --- CONTROL BAR --- */
+    .control-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      width: 100%;
+      max-width: 850px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .setting-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .setting-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-time-group {
+      display: flex;
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 3px;
+      border: 1px solid #1e293b;
+    }
+
+    .btn-time {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-time.active {
+      background: var(--accent-gold);
+      color: #000;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: #fff;
+      border: none;
+      font-family: 'Cinzel', serif;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 0.6rem 1.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+      transition: all 0.2s;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(217, 119, 6, 0.6);
+    }
+
+    .primary-btn:active {
+      transform: translateY(0);
+    }
+
+    /* --- TIMER & ANOMALY BANNER --- */
+    .status-section {
+      width: 100%;
+      max-width: 850px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .timer-display {
+      font-family: 'Cinzel', serif;
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--text-main);
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .timer-display.warning {
+      color: var(--accent-red);
+      animation: pulse 0.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+      to { transform: scale(1.08); text-shadow: 0 0 25px rgba(239, 68, 68, 0.9); }
+    }
+
+    .anomaly-badge {
+      display: none;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--accent-red);
+      color: #fca5a5;
+      padding: 0.4rem 1.2rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      animation: anomalyGlow 1s infinite alternate;
+    }
+
+    @keyframes anomalyGlow {
+      from { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
+      to { box-shadow: 0 0 18px rgba(239, 68, 68, 0.8); }
+    }
+
+    .anomaly-badge.active {
+      display: inline-block;
+    }
+
+    /* --- ARENA GRID --- */
+    .arena {
+      width: 100%;
+      max-width: 850px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .arena {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .side-card {
+      background: var(--bg-card);
+      border: 2px solid var(--bg-card-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: border-color 0.3s;
+    }
+
+    .side-card.yin {
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 8px 25px -5px var(--yin-glow);
+    }
+
+    .side-card.yang {
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 8px 25px -5px var(--yang-glow);
+    }
+
+    .side-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--bg-card-border);
+    }
+
+    .side-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .yin .side-title { color: var(--yin-color); }
+    .yang .side-title { color: var(--yang-color); }
+
+    .side-sum {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      background: #0b0f14;
+      padding: 0.2rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--bg-card-border);
+    }
+
+    .yin .side-sum { color: var(--yin-color); }
+    .yang .side-sum { color: var(--yang-color); }
+
+    .pillars-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      width: 100%;
+      min-height: 180px;
+      align-items: center;
+    }
+
+    /* --- PILLAR COMPONENT --- */
+    .pillar {
+      background: #0f172a;
+      border: 2px solid #1e293b;
+      border-radius: 12px;
+      width: 72px;
+      height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.4rem;
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+      position: relative;
+    }
+
+    .yin .pillar {
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .yang .pillar {
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .pillar:hover {
+      transform: translateY(-4px);
+    }
+
+    .yin .pillar:hover {
+      border-color: var(--yin-color);
+      box-shadow: 0 0 15px var(--yin-glow);
+    }
+
+    .yang .pillar:hover {
+      border-color: var(--yang-color);
+      box-shadow: 0 0 15px var(--yang-glow);
+    }
+
+    .pillar:active {
+      transform: translateY(-1px) scale(0.97);
+    }
+
+    .pillar-numeral {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+      margin-top: 0.2rem;
+    }
+
+    .pillar-dots {
+      display: flex;
+      gap: 3px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #334155;
+    }
+
+    .yin .dot.active { background: var(--yin-color); box-shadow: 0 0 5px var(--yin-color); }
+    .yang .dot.active { background: var(--yang-color); box-shadow: 0 0 5px var(--yang-color); }
+
+    /* --- STATS BAR --- */
+    .stats-bar {
+      width: 100%;
+      max-width: 850px;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--accent-gold);
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* --- NOTIFICATION / FEEDBACK OVERLAY --- */
+    .toast {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .toast.win {
+      background: #064e3b;
+      border: 2px solid var(--accent-green);
+      color: #a7f3d0;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .toast.loss {
+      background: #7f1d1d;
+      border: 2px solid var(--accent-red);
+      color: #fecaca;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Halcyon Raid Trainer</h1>
+    <p class="subtitle">WHERE WINDS MEET • QUICK MATCHING NUMBER PRACTICE</p>
+  </header>
+
+  <div class="control-panel">
+    <div class="setting-group">
+      <span class="setting-label">Timer:</span>
+      <div class="btn-time-group">
+        <button class="btn-time" data-time="6">6s</button>
+        <button class="btn-time active" data-time="9">9s</button>
+        <button class="btn-time" data-time="12">12s</button>
+      </div>
+    </div>
+
+    <button id="startBtn" class="primary-btn">START ROUND</button>
+  </div>
+
+  <div class="status-section">
+    <div id="timer" class="timer-display">9.0s</div>
+    <div id="anomalyBadge" class="anomaly-badge">⚠️ 17 ANOMALY DETECTED (5 PILLARS)</div>
+  </div>
+
+  <main class="arena">
+    <!-- YIN SIDE -->
+    <div class="side-card yin">
+      <div class="side-header">
+        <span class="side-title">YIN SIDE</span>
+        <span id="yinSum" class="side-sum">0</span>
+      </div>
+      <div id="yinPillars" class="pillars-container"></div>
+    </div>
+
+    <!-- YANG SIDE -->
+    <div class="side-card yang">
+      <div class="side-header">
+        <span class="side-title">YANG SIDE</span>
+        <span id="yangSum" class="side-sum">0</span>
+      </div>
+      <div id="yangPillars" class="pillars-container"></div>
+    </div>
+  </main>
+
+  <footer class="stats-bar">
+    <div class="stat-item">
+      <div id="statStreak" class="stat-value">0</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="stat-item">
+      <div id="statWinRate" class="stat-value">0%</div>
+      <div class="stat-label">Win Rate</div>
+    </div>
+    <div class="stat-item">
+      <div id="statAvgTime" class="stat-value">0.0s</div>
+      <div class="stat-label">Avg Speed</div>
+    </div>
+    <div class="stat-item">
+      <div id="stat17Rate" class="stat-value">0/0</div>
+      <div class="stat-label">17 Anomaly Clear</div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast">MATCHED!</div>
+
+  <script>
+    // --- ROMAN NUMERAL HELPERS ---
+    const ROMAN = ['', 'I', 'II', 'III', 'IIII'];
+
+    // --- AUDIO SYNTHESIZER (WEB AUDIO API) ---
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+
+      playRotate() {
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+
+      playWin() {
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.3);
+        });
+      }
+
+      playLoss() {
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }
+
+      playAnomaly() {
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.setValueAtTime(400, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+    }
+
+    const audio = new SoundEngine();
+
+    // --- GAME STATE ---
+    let selectedDuration = 9;
+    let timeRemaining = 9;
+    let timerInterval = null;
+    let isPlaying = false;
+    let isAnomalyRound = false;
+
+    let yinPillarsData = [];
+    let yangPillarsData = [];
+
+    // Stats
+    let totalPlayed = 0;
+    let totalWins = 0;
+    let currentStreak = 0;
+    let totalSolveTime = 0;
+    let anomalyClears = 0;
+    let anomalyTotal = 0;
+    let roundStartTime = 0;
+
+    // --- DOM ELEMENTS ---
+    const timerEl = document.getElementById('timer');
+    const anomalyBadgeEl = document.getElementById('anomalyBadge');
+    const startBtn = document.getElementById('startBtn');
+    const yinPillarsEl = document.getElementById('yinPillars');
+    const yangPillarsEl = document.getElementById('yangPillars');
+    const yinSumEl = document.getElementById('yinSum');
+    const yangSumEl = document.getElementById('yangSum');
+    const toastEl = document.getElementById('toast');
+
+    // Stats DOM
+    const statStreakEl = document.getElementById('statStreak');
+    const statWinRateEl = document.getElementById('statWinRate');
+    const statAvgTimeEl = document.getElementById('statAvgTime');
+    const stat17RateEl = document.getElementById('stat17Rate');
+
+    // --- TIMER PRESET BUTTONS ---
+    document.querySelectorAll('.btn-time').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-time').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        selectedDuration = parseInt(e.target.dataset.time, 10);
+        if (!isPlaying) {
+          timeRemaining = selectedDuration;
+          timerEl.textContent = `${timeRemaining.toFixed(1)}s`;
+        }
+      });
+    });
+
+    startBtn.addEventListener('click', () => {
+      audio.init();
+      startRound();
+    });
+
+    // --- GENERATE ROUND DATA WITH WIDE GAP VARIANCE & STRICT 17 ANOMALY ---
+    function startRound() {
+      clearInterval(timerInterval);
+      isPlaying = true;
+      roundStartTime = Date.now();
+
+      // 15% chance for 17 Anomaly trap
+      isAnomalyRound = Math.random() < 0.15;
+
+      if (isAnomalyRound) {
+        anomalyTotal++;
+        anomalyBadgeEl.classList.add('active');
+        audio.playAnomaly();
+
+        // 17 Anomaly: Force 5 pillars on ONE side with sum IMMEDIATELY = 17
+        const anomalySide = Math.random() < 0.5 ? 'yin' : 'yang';
+        
+        if (anomalySide === 'yin') {
+          yinPillarsData = [4, 4, 4, 4, 1]; // Strictly forced to 17
+          yangPillarsData = generateRandomPillars(5, [8, 14]); // Challenging gap
+        } else {
+          yangPillarsData = [4, 4, 4, 4, 1]; // Strictly forced to 17
+          yinPillarsData = generateRandomPillars(5, [8, 14]);
+        }
+      } else {
+        anomalyBadgeEl.classList.remove('active');
+        
+        // Standard Round: 4 pillars each side
+        // Create Wide Variance in Gaps (e.g., 6 vs 12, 14 vs 7, 5 vs 11)
+        const targetA = Math.floor(Math.random() * 8) + 4; // 4 to 11
+        let targetB = Math.floor(Math.random() * 8) + 8;  // 8 to 15
+        
+        // Ensure gap is noticeable (at least 3-6 points difference)
+        if (Math.abs(targetA - targetB) < 3) {
+          targetB = Math.min(16, targetB + 4);
+        }
+
+        yinPillarsData = generatePillarsForSum(4, targetA);
+        yangPillarsData = generatePillarsForSum(4, targetB);
+      }
+
+      renderPillars();
+      checkMatchCondition(true); // Initial silent check
+
+      timeRemaining = selectedDuration;
+      timerEl.classList.remove('warning');
+      timerEl.textContent = `${timeRemaining.toFixed(1)}s`;
+
+      startBtn.textContent = 'RESTART ROUND';
+
+      timerInterval = setInterval(() => {
+        timeRemaining -= 0.1;
+        if (timeRemaining <= 3.0) {
+          timerEl.classList.add('warning');
+        }
+
+        if (timeRemaining <= 0) {
+          timeRemaining = 0;
+          timerEl.textContent = '0.0s';
+          endRound(false, 'TIME EXPIRED');
+        } else {
+          timerEl.textContent = `${timeRemaining.toFixed(1)}s`;
+        }
+      }, 100);
+    }
+
+    function generateRandomPillars(count, [minSum, maxSum]) {
+      let pillars = [];
+      let currentSum = 0;
+      for (let i = 0; i < count; i++) {
+        const val = Math.floor(Math.random() * 4) + 1;
+        pillars.push(val);
+      }
+      return pillars;
+    }
+
+    function generatePillarsForSum(count, targetSum) {
+      let pillars = Array(count).fill(1);
+      let remaining = targetSum - count;
+
+      while (remaining > 0) {
+        const idx = Math.floor(Math.random() * count);
+        if (pillars[idx] < 4) {
+          pillars[idx]++;
+          remaining--;
+        }
+      }
+      return pillars;
+    }
+
+    // --- RENDER PILLARS ---
+    function renderPillars() {
+      renderSide('yin', yinPillarsData, yinPillarsEl);
+      renderSide('yang', yangPillarsData, yangPillarsEl);
+    }
+
+    function renderSide(sideName, dataArray, containerEl) {
+      containerEl.innerHTML = '';
+      let sum = 0;
+
+      dataArray.forEach((val, idx) => {
+        sum += val;
+        const p = document.createElement('div');
+        p.className = 'pillar';
+        
+        let dotsHtml = '';
+        for (let d = 1; d <= 4; d++) {
+          dotsHtml += `<div class="dot ${d <= val ? 'active' : ''}"></div>`;
+        }
+
+        p.innerHTML = `
+          <div class="pillar-numeral">${ROMAN[val]}</div>
+          <div class="pillar-dots">${dotsHtml}</div>
+        `;
+
+        p.addEventListener('click', () => {
+          if (!isPlaying) return;
+          audio.playRotate();
+          
+          // Cycle numeral (1 -> 2 -> 3 -> 4 -> 1)
+          dataArray[idx] = (dataArray[idx] % 4) + 1;
+          renderPillars();
+          checkMatchCondition();
+        });
+
+        containerEl.appendChild(p);
+      });
+
+      if (sideName === 'yin') yinSumEl.textContent = sum;
+      if (sideName === 'yang') yangSumEl.textContent = sum;
+    }
+
+    // --- WIN / LOSS CHECK ---
+    function checkMatchCondition(isInitialCheck = false) {
+      const yinSum = yinPillarsData.reduce((a, b) => a + b, 0);
+      const yangSum = yangPillarsData.reduce((a, b) => a + b, 0);
+
+      if (yinSum === yangSum) {
+        if (!isInitialCheck) {
+          const solveTime = (Date.now() - roundStartTime) / 1000;
+          endRound(true, 'MATCHED!', solveTime);
+        }
+      }
+    }
+
+    function endRound(isWin, message, solveTime = 0) {
+      clearInterval(timerInterval);
+      isPlaying = false;
+      totalPlayed++;
+
+      if (isWin) {
+        totalWins++;
+        currentStreak++;
+        totalSolveTime += solveTime;
+        if (isAnomalyRound) anomalyClears++;
+
+        audio.playWin();
+        showToast(message, 'win');
+      } else {
+        currentStreak = 0;
+        audio.playLoss();
+        showToast(message, 'loss');
+      }
+
+      updateStats();
+      startBtn.textContent = 'NEXT ROUND';
+    }
+
+    function showToast(msg, type) {
+      toastEl.textContent = msg;
+      toastEl.className = `toast ${type}`;
+      setTimeout(() => {
+        toastEl.className = 'toast';
+      }, 1200);
+    }
+
+    function updateStats() {
+      statStreakEl.textContent = currentStreak;
+      
+      const winRate = totalPlayed > 0 ? Math.round((totalWins / totalPlayed) * 100) : 0;
+      statWinRateEl.textContent = `${winRate}%`;
+
+      const avgTime = totalWins > 0 ? (totalSolveTime / totalWins).toFixed(1) : '0.0';
+      statAvgTimeEl.textContent = `${avgTime}s`;
+
+      stat17RateEl.textContent = `${anomalyClears}/${anomalyTotal}`;
+    }
+
+    // --- INITIAL RENDER ---
+    yinPillarsData = [1, 1, 1, 1];
+    yangPillarsData = [1, 1, 1, 1];
+    renderPillars();
+  </script>
+</body>
+</html>
